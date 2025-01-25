@@ -19,3 +19,20 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+.video-background {
+  position: fixed; /* Fixed so it stays in place */
+  top: 0;
+  left: 0;
+  width: 100%; /* Full width of the screen */
+  height: 100%; /* Full height of the screen */
+  object-fit: cover; /* Make the video cover the entire screen */
+  z-index: -1; /* Place the video behind the content */
+}
+
+.content {
+  position: relative;
+  z-index: 1; /* Ensure the content stays on top */
+  color: white; /* White text on the video background */
+  text-align: center; /* Center the content */
+  padding: 20px;
+}

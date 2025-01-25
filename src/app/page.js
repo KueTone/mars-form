@@ -1,101 +1,308 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { CountryDropdown } from "react-country-region-selector";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [stage, setStage] = useState(1);
+  const [country, setCountry] = useState("");
+  const [validationErrors, setValidationErrors] = useState({});
+  const [formData, setFormData] = useState({
+    fullName: "",
+    dateOfBirth: "",
+    country: "",
+    email: "",
+    phone: "",
+    departureDate: "",
+    returnDate: "",
+    accommodation: "Space Hotel",
+    specialRequests: "",
+    healthDeclaration: false,
+    emergencyContact: "",
+    medicalConditions: "",
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const onChangeCountry = (val) => {
+    setCountry(val);
+    setFormData((prev) => ({ ...prev, country: val }));
+    validateField("country", val);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const fieldValue = type === "checkbox" ? checked : value;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: fieldValue,
+    }));
+
+    validateField(name, fieldValue);
+  };
+
+  const validateField = (fieldName, value) => {
+    let errorMessage = "";
+
+    if (fieldName === "fullName" && !value.trim()) {
+      errorMessage = "Full Name is required.";
+    } else if (fieldName === "email" && !/\S+@\S+\.\S+/.test(value)) {
+      errorMessage = "Please enter a valid email address.";
+    } else if (fieldName === "phone" && !/^\d{10,15}$/.test(value)) {
+      errorMessage = "Please enter a valid phone number.";
+    } else if (
+      (fieldName === "departureDate" || fieldName === "returnDate") &&
+      !value
+    ) {
+      errorMessage = `Please provide a ${
+        fieldName === "departureDate" ? "departure" : "return"
+      } date.`;
+    } else if (fieldName === "country" && !value) {
+      errorMessage = "Please select a country.";
+    } else if (fieldName === "healthDeclaration" && !value) {
+      errorMessage = "Health declaration is required.";
+    } else if (fieldName === "emergencyContact" && !value.trim()) {
+      errorMessage = "Emergency Contact is required.";
+    }
+
+    setValidationErrors((prev) => ({
+      ...prev,
+      [fieldName]: errorMessage,
+    }));
+  };
+  const validateStage = () => {
+    if (stage === 1) {
+      return (
+        formData.fullName.trim() &&
+        formData.dateOfBirth &&
+        country &&
+        formData.email.trim() &&
+        /\S+@\S+\.\S+/.test(formData.email) &&
+        /^\d{10,15}$/.test(formData.phone)
+      );
+    } else if (stage === 2) {
+      return (
+        formData.departureDate && formData.returnDate && formData.accommodation
+      );
+    } else if (stage === 3) {
+      return formData.healthDeclaration && formData.emergencyContact.trim();
+    }
+    return true;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const isValid = Object.values(validationErrors).every((error) => !error);
+    if (isValid) {
+      setStage(4);
+      console.log(formData);
+    } else {
+      alert("Please fix validation errors before submitting.");
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 sm:p-12">
+      <iframe
+        className="absolute top-0 left-0 w-full h-full -z-10 scale-110"
+        src="https://www.youtube.com/embed/wnhvanMdx4s?autoplay=1&mute=1&loop=1&playlist=wnhvanMdx4s"
+        allow="autoplay; fullscreen"
+        allowFullScreen
+      ></iframe>
+
+      <h1 className="text-2xl font-bold mb-6">Mars Visit Application Form</h1>
+
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md p-6 border rounded-lg shadow-lg bg-white space-y-4 text-black"
+      >
+        {stage == 1 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
+            <input
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              onBlur={() => validateField("fullName", formData.fullName)}
+              placeholder="Full Name"
+              className="w-full p-2 border rounded mb-2"
+              required
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {validationErrors.fullName && (
+              <p className="text-red-500 text-sm">
+                {validationErrors.fullName}
+              </p>
+            )}
+
+            <input
+              type="date"
+              name="dateOfBirth"
+              value={formData.dateOfBirth}
+              onChange={handleInputChange}
+              onBlur={() => validateField("dateOfBirth", formData.dateOfBirth)}
+              className="w-full p-2 border rounded mb-2"
+              required
+            />
+
+            <CountryDropdown
+              name="country"
+              value={country}
+              onChange={onChangeCountry}
+              onBlur={() => validateField("country", country)}
+              className="w-full p-2 border rounded mb-2"
+            />
+            {validationErrors.country && (
+              <p className="text-red-500 text-sm">{validationErrors.country}</p>
+            )}
+
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              onBlur={() => validateField("email", formData.email)}
+              placeholder="Email"
+              className="w-full p-2 border rounded mb-2"
+              required
+            />
+            {validationErrors.email && (
+              <p className="text-red-500 text-sm">{validationErrors.email}</p>
+            )}
+
+            <input
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              onBlur={() => validateField("phone", formData.phone)}
+              placeholder="Phone"
+              className="w-full p-2 border rounded"
+              required
+            />
+            {validationErrors.phone && (
+              <p className="text-red-500 text-sm">{validationErrors.phone}</p>
+            )}
+          </div>
+        )}
+        {stage == 2 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Travel Preferences</h2>
+            <input
+              type="date"
+              name="departureDate"
+              value={formData.departureDate}
+              onChange={handleInputChange}
+              placeholder="Departure Date"
+              className="w-full p-2 border rounded mb-2"
+              required
+            />
+            <input
+              type="date"
+              name="returnDate"
+              value={formData.returnDate}
+              onChange={handleInputChange}
+              placeholder="Return Date"
+              className="w-full p-2 border rounded mb-2"
+              required
+            />
+            <select
+              name="accommodation"
+              value={formData.accommodation}
+              onChange={handleInputChange}
+              className="w-full p-2 border rounded mb-2"
+            >
+              <option value="Space Hotel">Space Hotel</option>
+              <option value="Martian Base">Martian Base</option>
+            </select>
+            <textarea
+              name="specialRequests"
+              value={formData.specialRequests}
+              onChange={handleInputChange}
+              placeholder="Special Requests or Preferences"
+              className="w-full p-2 border rounded"
+            />
+          </div>
+        )}
+        {stage == 3 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Health and Safety</h2>
+            <label className="block mb-2">
+              <input
+                type="checkbox"
+                name="healthDeclaration"
+                checked={formData.healthDeclaration}
+                onChange={handleInputChange}
+                className="mr-2"
+                required
+              />
+              I declare that I am in good health
+            </label>
+            <input
+              type="text"
+              name="emergencyContact"
+              value={formData.emergencyContact}
+              onChange={handleInputChange}
+              placeholder="Emergency Contact"
+              className="w-full p-2 border rounded mb-2"
+              required
+            />
+            <textarea
+              name="medicalConditions"
+              value={formData.medicalConditions}
+              onChange={handleInputChange}
+              placeholder="Any Medical Conditions (if applicable)"
+              className="w-full p-2 border rounded"
+            />
+          </div>
+        )}
+        {stage == 4 && (
+          <div>
+            <h2 className="text-xl font-semibold text-center mb-4">
+              Application Submitted Successfully!
+            </h2>
+            <p className="text-center">
+              Thank you for your application. We will process it and get back to
+              you soon.
+            </p>
+          </div>
+        )}
+
+        <div className="flex justify-between">
+          {stage > 1 && (
+            <button
+              type="button"
+              onClick={() => setStage(stage - 1)}
+              className="px-4 py-2 bg-gray-300 text-black rounded"
+            >
+              Back
+            </button>
+          )}
+          {stage < 3 && (
+            <button
+              type="button"
+              onClick={() => setStage(stage + 1)}
+              className={`px-4 py-2 rounded ${
+                validateStage()
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+              disabled={!validateStage()}
+            >
+              Next
+            </button>
+          )}
+
+          {stage === 3 && (
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-500 text-white rounded"
+            >
+              Submit
+            </button>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </form>
     </div>
   );
 }
